@@ -1,0 +1,25 @@
+# Sensitive credentials
+.env
+*.env
+credentials.json
+secrets/
+config.local.*
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editor files
+.vscode/
+.idea/
+*.swp
+
+# Logs
+*.log
+npm-debug.log*
+
+# Dependencies (future use)
+node_modules/
+__pycache__/
+*.pyc

@@ -1,0 +1,1433 @@
+{
+  "name": "AI Lead Qualification & Roting System",
+  "nodes": [
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.groq.com/openai/v1/chat/completions",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer "
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"model\": \"llama-3.3-70b-versatile\",\n  \"messages\": [\n    {\n      \"role\": \"system\",\n      \"content\": \"You are Sofia, a warm and professional AI receptionist for a luxury US-based MedSpa. You are like a knowledgeable friend who genuinely wants to help — not a salesperson. You respond the way a top-tier US MedSpa front desk would: warm, confident, and efficient.\\n\\nAnalyze the lead and respond in JSON format only — no extra text, no backticks:\\n{\\n  \\\"lead_status\\\": \\\"HOT or WARM or COLD\\\",\\n  \\\"score\\\": 1-10,\\n  \\\"intent\\\": \\\"treatment_inquiry or price_check or booking_ready or casual_browse\\\",\\n  \\\"budget_level\\\": \\\"low or medium or high\\\",\\n  \\\"urgency\\\": \\\"low or medium or high\\\",\\n  \\\"recommended_action\\\": \\\"call_now or send_booking or nurture\\\",\\n  \\\"reasoning\\\": \\\"2 sentence explanation\\\",\\n  \\\"reply\\\": \\\"your personalized message to the lead\\\",\\n  \\\"owner_alert\\\": \\\"short WhatsApp alert for the clinic owner\\\"\\n}\\n\\nLanguage Rules:\\n- English message → reply in English\\n- Spanish message → reply in Spanish\\n- Mixed English/Spanish (Spanglish) → reply in the dominant language\\n- ALWAYS open with a warm, friendly greeting (Hi [Name]!, Hello [Name]!, ¡Hola [Name]!)\\n- If the message is unclear or empty → reply with a warm greeting asking what treatment they're interested in\\n\\nLead Scoring Rules:\\n- HOT (8-10): Asks about availability, gives timeline, mentions specific treatment + budget, ready to book, uses words like 'today', 'this week', 'urgent', 'ASAP', 'book me'\\n- WARM (5-7): Interested but asking questions, comparing prices, researching options, says 'thinking about', 'considering', 'want to learn more'\\n- COLD (1-4): Vague message, just browsing, no specific service mentioned, one-word replies\\n\\nBudget Calibration (US MedSpa pricing):\\n- LOW: under $300 mentioned or words like 'cheap', 'affordable', 'budget'\\n- MEDIUM: $300-$1,000 mentioned\\n- HIGH: $1,000+ mentioned, asks about packages or memberships\\n\\nStage Rules:\\n- If Stage is RETURNING: Be more personal, reference their past interest warmly, skip repeating intro info\\n- If Stage is NEW: Treat as fresh lead, be welcoming and introductory\\n\\nCommon US MedSpa Services (use correct terminology):\\n- Botox / Dysport / Xeomin (neurotoxins)\\n- Juvederm / Restylane / RHA (dermal fillers)\\n- HydraFacial / Chemical Peels / Microneedling\\n- CoolSculpting / Emsculpt / Morpheus8 (body contouring)\\n- IV Drip Therapy / Hormone Therapy\\n- Laser Hair Removal / Laser Resurfacing\\n- Lip Filler / Cheek Filler / Under-Eye Filler\\n\\nReply Rules:\\n- Start with warm greeting using their first name\\n- Acknowledge their specific service interest\\n- Provide helpful info (approximate pricing range if appropriate)\\n- Include booking link: https://calendly.com/expertnafees/medspa-consultation\\n- Include clinic address: 📍 2847 Brickell Avenue, Miami, FL 33129\\n- Sign off as 'Sofia — MedSpa Team'\\n- Max 5 sentences — concise, warm, and actionable\\n- Never give medical advice — always direct specific medical questions to the clinic team\\n- Use 1-2 subtle emojis maximum (💉 🌸 ✨), never overdo it\\n\\nOwner Alert Rules (WhatsApp format):\\n- Start with 🔥 HOT, ⚡ WARM, or 📋 COLD based on status\\n- Include: Name, Service interest, Phone, Urgency level\\n- Max 2 lines — scannable at a glance\\n- Example: '🔥 HOT LEAD — Jessica M. wants Botox ASAP (budget $500+). Phone: +1-305-555-0142. Reply within 5 min!'\\n\\nTone Rules:\\n- Warm but professional (never casual/slangy)\\n- Confident and knowledgeable (not apologetic or unsure)\\n- Concierge energy (you work at a premium clinic, not a chain)\\n- Respectful of privacy (never ask for medical history in first reply)\"\n    },\n    {\n      \"role\": \"user\",\n      \"content\": \"Lead Name: {{ $('Lead Intake — Webhook').item.json.body.name }}\\nService: {{ $('Lead Intake — Webhook').item.json.body.service }}\\nMessage: {{ $('Lead Intake — Webhook').item.json.body.message }}\\nLead Stage: {{ $('If').item.json.Stage || 'NEW' }}\"\n    }\n  ]\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        1072,
+        128
+      ],
+      "id": "9db9e0d6-76dd-4f53-af4a-59dd982eb678",
+      "name": "Sofia AI — Qualify Lead (Groq)",
+      "alwaysOutputData": false,
+      "retryOnFail": true,
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "from": "+14155238886",
+        "to": "whatsapp:+923173046289",
+        "toWhatsapp": true,
+        "message": "=🔥 HOT LEAD ALERT!  Name: {{ $('Lead Intake — Webhook').item.json.body.name }} Service: {{ $('Lead Intake — Webhook').item.json.body.service }} Phone: {{ $('Lead Intake — Webhook').item.json.body.phone }} Message: {{ $('Lead Intake — Webhook').item.json.body.message }}  Reply quickly! 🚀",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.twilio",
+      "typeVersion": 1,
+      "position": [
+        2736,
+        112
+      ],
+      "id": "99e34694-5b5f-4930-b8d5-d0207c167382",
+      "name": "Send HOT Lead Alert (Twilio,WhatsApp)",
+      "alwaysOutputData": false,
+      "retryOnFail": true,
+      "credentials": {
+        "twilioApi": {
+          "id": "55d5QMXuzkmoH2E0",
+          "name": "Twilio account"
+        }
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "142aea41-1cdf-4b93-8386-539fc7638959",
+              "leftValue": "={{ $('Lead Intake — Webhook').item.json.body.name }}",
+              "rightValue": "is not empty",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            },
+            {
+              "id": "6148db6e-3c62-4247-b0f4-80a39de3c9ea",
+              "leftValue": "={{ $('Lead Intake — Webhook').item.json.body.email }}",
+              "rightValue": "is not empty",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            },
+            {
+              "id": "1c7369a5-3d56-43cd-b40f-6a61025c8bac",
+              "leftValue": "={{ $('Lead Intake — Webhook').item.json.body.phone }}",
+              "rightValue": "is not empty",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        448,
+        128
+      ],
+      "id": "9d8e3f0c-64cc-4027-9076-5142b103f732",
+      "name": "Filter: Real Lead?"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.resend.com/emails",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBearerAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"from\": \"onboarding@resend.dev\",\n  \"to\": \"nafeesurrehman556@gmail.com\",\n  \"subject\": \"Still thinking about it? We're here! 😊\",\n  \"text\": \"Hi {{ $('Lead Intake — Webhook').item.json.body.name }}! We noticed you were exploring our MedSpa services. No rush at all — we're here whenever you're ready! Our treatments are designed to make you look and feel your best. Feel free to reach out anytime with questions. We'd love to hear from you! Warm regards, Sofia — MedSpa Team\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        2576,
+        400
+      ],
+      "id": "e8012f99-cb5e-4391-8366-f1538948d135",
+      "name": "Send Cold Follow-up Email (Resend)",
+      "credentials": {
+        "httpBearerAuth": {
+          "id": "Lk5Ffo0LRNKNDf93",
+          "name": "Bearer Auth account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "create",
+        "base": {
+          "__rl": true,
+          "value": "appvxAjk2m9rapfpS",
+          "mode": "list",
+          "cachedResultName": "Sofia_USA_v4",
+          "cachedResultUrl": "https://airtable.com/appvxAjk2m9rapfpS"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblOQDGfedlmuj1rU",
+          "mode": "list",
+          "cachedResultName": "Leads",
+          "cachedResultUrl": "https://airtable.com/appvxAjk2m9rapfpS/tblOQDGfedlmuj1rU"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "PHIFlag": "={{ $json.phiDetected }}",
+            "ConsentMarketing": "={{ $json.consentMarketing }}",
+            "OptedOut": "={{ false }}",
+            "LeadScore": "={{ $json.score }}",
+            "FollowUpStage": 0,
+            "FullName": "={{ $json.name }}",
+            "Email": "={{ $json.email }}",
+            "Phone": "={{ $json.phone }}",
+            "ZipCode": "={{ $json.zipCode }}",
+            "TreatmentInterest": "={{ $json.detectedService }}",
+            "BudgetRange": "={{ $json.budgetSignal }}",
+            "Message": "={{ $json.message }}",
+            "Language": "={{ $json.detectedLanguage }}",
+            "Tier": "={{ $json.tier }}",
+            "Status": "New",
+            "SofiaReply": "={{ $json.sofiaReply }}",
+            "Intent": "={{ ($json.intent || 'other').toLowerCase().replace(/\\s+/g, '_') }}",
+            "Source": "={{ $json.source }}",
+            "Campaign": "={{ $json.campaign }}",
+            "ConsentTimestamp": "={{ $json.consentTimestamp }}",
+            "ConsentIP": "={{ $json.consentIP }}",
+            "DedupHash": "={{ $json.dedupHash }}",
+            "NextFollowUp": "={{ $json.nextFollowUp }}",
+            "SofiaRepliedAt": "={{ $json.sofiaRepliedAt }}",
+            "CreatedAt": "={{ $json.receivedAt }}",
+            "ClinicID": "={{ $json.clinicId }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "LeadID",
+              "displayName": "LeadID",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "ClinicID",
+              "displayName": "ClinicID",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "FullName",
+              "displayName": "FullName",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Email",
+              "displayName": "Email",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Phone",
+              "displayName": "Phone",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "ZipCode",
+              "displayName": "ZipCode",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "TreatmentInterest",
+              "displayName": "TreatmentInterest",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "BudgetRange",
+              "displayName": "BudgetRange",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Message",
+              "displayName": "Message",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Language",
+              "displayName": "Language",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "LeadScore",
+              "displayName": "LeadScore",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Tier",
+              "displayName": "Tier",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Status",
+              "displayName": "Status",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "SofiaReply",
+              "displayName": "SofiaReply",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Intent",
+              "displayName": "Intent",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Source",
+              "displayName": "Source",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Campaign",
+              "displayName": "Campaign",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "PHIFlag",
+              "displayName": "PHIFlag",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "boolean",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "ConsentMarketing",
+              "displayName": "ConsentMarketing",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "boolean",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "ConsentTimestamp",
+              "displayName": "ConsentTimestamp",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "dateTime",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "ConsentIP",
+              "displayName": "ConsentIP",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "OptedOut",
+              "displayName": "OptedOut",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "boolean",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "DedupHash",
+              "displayName": "DedupHash",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "FollowUpStage",
+              "displayName": "FollowUpStage",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "NextFollowUp",
+              "displayName": "NextFollowUp",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "dateTime",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Notes",
+              "displayName": "Notes",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "SofiaRepliedAt",
+              "displayName": "SofiaRepliedAt",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "dateTime",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "CreatedAt",
+              "displayName": "CreatedAt",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "dateTime",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Compliance_Log",
+              "displayName": "Compliance_Log",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "array",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {
+          "typecast": false
+        }
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        1488,
+        128
+      ],
+      "id": "e02f08a3-6f5f-407f-83cd-5661c93c4f81",
+      "name": "Save to Airtable CRM",
+      "alwaysOutputData": false,
+      "retryOnFail": true,
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "Pn2zzprIK4UPHWLX",
+          "name": "Airtable Personal Access Token account"
+        }
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "2f3a2ae1-af8f-4389-9556-c06142b3479d",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        32,
+        128
+      ],
+      "id": "2f243462-3ff4-4c6b-af45-982b8f3d3b9d",
+      "name": "Lead Intake — Webhook",
+      "webhookId": "2f3a2ae1-af8f-4389-9556-c06142b3479d"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        2832,
+        400
+      ],
+      "id": "3d725b38-a278-4e3d-9802-5ac4d6c78ebd",
+      "name": "End — WARM/COLD Handled"
+    },
+    {
+      "parameters": {
+        "content": "Sofia AI qualifies every lead in under 5 seconds — 24/7",
+        "height": 80,
+        "width": 160
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        1040,
+        16
+      ],
+      "typeVersion": 1,
+      "id": "17f3d089-fc8e-42d0-936f-bf0a3326568b",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "content": "HOT leads: Owner alerted immediately via WhatsApp",
+        "height": 80,
+        "width": 160
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        2704,
+        -16
+      ],
+      "typeVersion": 1,
+      "id": "0a76b324-5cf2-4808-b926-0192e43960c0",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "content": "WARM/COLD leads: Automatic nurture sequence begins",
+        "height": 80,
+        "width": 196
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        2064,
+        16
+      ],
+      "typeVersion": 1,
+      "id": "446651e8-128c-4592-b084-b612b404c0f1",
+      "name": "Sticky Note2"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "3c4e6a2a-32a6-455b-a6d8-2eadccae7075",
+              "leftValue": "={{ JSON.parse($('Sofia AI — Qualify Lead (Groq)').item.json.choices[0].message.content).lead_status }}",
+              "rightValue": "WARM",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        2128,
+        416
+      ],
+      "id": "4271d3c7-4663-4fe7-816e-702d86d8fa03",
+      "name": "Split: WARM vs COLD"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.resend.com/emails",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBearerAuth",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "from",
+              "value": "onboarding@resend.dev"
+            },
+            {
+              "name": "to",
+              "value": "nafeesurrehman556@gmail.com"
+            },
+            {
+              "name": "subject",
+              "value": "We would love to help you"
+            },
+            {
+              "name": "text",
+              "value": "Thank you for your interest in our MedSpa. We would love to offer you a FREE consultation. Reply to book your slot. Warm regards Sofia MedSpa Team"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        2368,
+        400
+      ],
+      "id": "2afdf584-240c-4ce3-8007-2b6507a66b9c",
+      "name": "Send Warm Nurture Email (Resend)",
+      "credentials": {
+        "httpBearerAuth": {
+          "id": "Lk5Ffo0LRNKNDf93",
+          "name": "Bearer Auth account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.resend.com/emails",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBearerAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"from\": \"onboarding@resend.dev\",\n  \"to\":  \"nafeesurrehman556@gmail.com\"\",\n  \"subject\": \"We received your inquiry! 🌸\",\n  \"text\": \"Hi {{ $('Lead Intake — Webhook').item.json.body.name }}! Thank you for reaching out to our MedSpa. Sofia has received your inquiry and our team will get back to you shortly.\\n\\nBook your free consultation here 👇\\nhttps://calendly.com/expertnafees/30min\\n\\nWarm regards,\\nSofia — MedSpa Team\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        1904,
+        128
+      ],
+      "id": "4622e627-ea7b-4e3d-a8fa-d93071815ee5",
+      "name": "Send Acknowledgment Email (All Leads)",
+      "alwaysOutputData": false,
+      "retryOnFail": true,
+      "credentials": {
+        "httpBearerAuth": {
+          "id": "Lk5Ffo0LRNKNDf93",
+          "name": "Bearer Auth account"
+        }
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "resource": "base",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.2,
+      "position": [
+        496,
+        400
+      ],
+      "id": "32317fd8-e325-4e25-84cb-d5f99a2f5acd",
+      "name": "Log Spam to Airtable",
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "Pn2zzprIK4UPHWLX",
+          "name": "Airtable Personal Access Token account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "from": "+14155238886",
+        "to": "=whatsapp:{{ $('Lead Intake — Webhook').item.json.body.phone }}",
+        "toWhatsapp": true,
+        "message": "=Hi {{ $('Lead Intake — Webhook').item.json.body.name }}! 🌸\n\nWe received your inquiry about {{ $('Lead Intake — Webhook').item.json.body.service }}.\n\nBook your free consultation here 👇\nhttps://calendly.com/expertnafees/30min",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.twilio",
+      "typeVersion": 1,
+      "position": [
+        2944,
+        112
+      ],
+      "id": "fd3d6177-6dc4-4d71-8c2d-bcad82a3ae5e",
+      "name": "Send HOT Lead Booking Link (Client)",
+      "alwaysOutputData": false,
+      "retryOnFail": true,
+      "credentials": {
+        "twilioApi": {
+          "id": "55d5QMXuzkmoH2E0",
+          "name": "Twilio account"
+        }
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "operation": "create",
+        "base": {
+          "__rl": true,
+          "value": "app4AXu9FIjBDzPVD",
+          "mode": "list",
+          "cachedResultName": "Aesthetics/Medspa",
+          "cachedResultUrl": "https://airtable.com/app4AXu9FIjBDzPVD"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tbllGUT829stD1JZI",
+          "mode": "list",
+          "cachedResultName": "LEADS",
+          "cachedResultUrl": "https://airtable.com/app4AXu9FIjBDzPVD/tbllGUT829stD1JZI"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {
+            "Full Name": "={{ $('Lead Intake — Webhook').item.json.body.name }}",
+            "Phone": "={{ $('Lead Intake — Webhook').item.json.body.phone }}",
+            "Email": "={{ $('Lead Intake — Webhook').item.json.body.email }}",
+            "Source": "AI_FAILED",
+            "Follow_Up_Day": 0
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Full Name",
+              "displayName": "Full Name",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Phone",
+              "displayName": "Phone",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Email",
+              "displayName": "Email",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Inquiry",
+              "displayName": "Inquiry",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Treatment Interest",
+              "displayName": "Treatment Interest",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Lead Score",
+              "displayName": "Lead Score",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "Hot",
+                  "value": "Hot"
+                },
+                {
+                  "name": "Warm",
+                  "value": "Warm"
+                },
+                {
+                  "name": "",
+                  "value": ""
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Status",
+              "displayName": "Status",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Source",
+              "displayName": "Source",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Assigned To",
+              "displayName": "Assigned To",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "Ali",
+                  "value": "Ali"
+                },
+                {
+                  "name": "Sara",
+                  "value": "Sara"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Follow-up Date",
+              "displayName": "Follow-up Date",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "dateTime",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Notes",
+              "displayName": "Notes",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Created Time",
+              "displayName": "Created Time",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Booking - Confirmed",
+              "displayName": "Booking - Confirmed",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Follow_Up_Day",
+              "displayName": "Follow_Up_Day",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Confirmation - Date",
+              "displayName": "Confirmation - Date",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "dateTime",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Last_Contacted",
+              "displayName": "Last_Contacted",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "dateTime",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Lead_History",
+              "displayName": "Lead_History",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.2,
+      "position": [
+        1168,
+        384
+      ],
+      "id": "d9a152d8-def7-42b9-b8d2-559bbb0b0b64",
+      "name": "Log AI Failure to Airtable",
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "Pn2zzprIK4UPHWLX",
+          "name": "Airtable Personal Access Token account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "5737e2b3-8832-4466-be98-dc84ee82fe64",
+              "leftValue": "={{ $('Filter: Real Lead?').item.json.body.email }}",
+              "rightValue": "Exists",
+              "operator": {
+                "type": "string",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        656,
+        128
+      ],
+      "id": "a4781125-b035-4c38-8643-583bd7247f88",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "jsCode": "for (const item of $input.all()) {\n  try {\n    // Groq response sahi jagah se lo\n    const groqRaw = $('Sofia AI — Qualify Lead (Groq)').item.json.choices[0].message.content;\n    const parsed = JSON.parse(groqRaw);\n\n    // Webhook data sahi jagah se lo\n    const body = $('Lead Intake — Webhook').item.json.body;\n\n    item.json = {\n      // Webhook fields\n      name:     body.name     || 'Unknown',\n      email:    body.email    || '',\n      phone:    body.phone    || '',\n      message:  body.message  || '',\n      clinicId: body.clinicId || body.clinic_id || 'test-miami-001',\n      zipCode:  body.zipCode  || '',\n      source:   body.source   || 'direct',\n      campaign: body.campaign || 'none',\n\n      // Sofia AI fields\n      lead_status:     parsed.lead_status || 'COLD',\n      tier:            parsed.lead_status || 'COLD',\n      score:           parsed.score       || 0,\n      intent:          parsed.intent      || 'other',\n      sofiaReply:      parsed.reply       || '',\n      detectedService: parsed.service     || 'unknown',\n      budgetSignal:    parsed.budget_level|| 'unknown',\n\n      // Fixed fields\n      status:           'New',\n      detectedLanguage: 'en',\n      phiDetected:      false,\n      consentMarketing: true,\n      consentIP:        'unknown',\n      consentTimestamp: new Date().toISOString(),\n      sofiaRepliedAt:   new Date().toISOString(),\n      receivedAt:       new Date().toISOString(),\n      dedupHash:        'h' + Date.now().toString(36),\n      followUpStage:    0\n    };\n\n  } catch (error) {\n    // Fallback — even if AI fails, save the lead\n    const body = $('Lead Intake — Webhook').item.json.body;\n    item.json = {\n      name:     body.name    || 'Unknown',\n      email:    body.email   || '',\n      phone:    body.phone   || '',\n      message:  body.message || '',\n      clinicId: body.clinicId || body.clinic_id || 'test-miami-001',\n      source:   body.source  || 'direct',\n      campaign: body.campaign || 'none',\n\n      lead_status:  'COLD',\n      tier:         'COLD',\n      score:        0,\n      intent:       'other',\n      sofiaReply:   'We received your inquiry and will be in touch shortly.',\n      status:       'New',\n      detectedLanguage: 'en',\n      phiDetected:  false,\n      consentMarketing: true,\n      dedupHash:    'e' + Date.now().toString(36),\n      receivedAt:   new Date().toISOString(),\n      sofiaRepliedAt: new Date().toISOString(),\n      consentTimestamp: new Date().toISOString(),\n      followUpStage: 0,\n      errorLog: error.message\n    };\n  }\n}\n\nreturn $input.all();"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1280,
+        128
+      ],
+      "id": "8d6c11e9-9c2b-4465-837b-8e2d437f960d",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "base": {
+          "__rl": true,
+          "value": "appvxAjk2m9rapfpS",
+          "mode": "list",
+          "cachedResultName": "Sofia_USA_v4",
+          "cachedResultUrl": "https://airtable.com/appvxAjk2m9rapfpS"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblOQDGfedlmuj1rU",
+          "mode": "list",
+          "cachedResultName": "Leads",
+          "cachedResultUrl": "https://airtable.com/appvxAjk2m9rapfpS/tblOQDGfedlmuj1rU"
+        },
+        "id": "={{ $('Save to Airtable CRM').item.json.id }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.2,
+      "position": [
+        1696,
+        128
+      ],
+      "id": "824d1af7-cf0e-4de0-9ab4-c48518b72c0a",
+      "name": "Get a record",
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "Pn2zzprIK4UPHWLX",
+          "name": "Airtable Personal Access Token account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "🚪 ENTRY POINT\nLead form data comes in here.\nCaptures: name, email, phone, service, message",
+        "height": 96
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -16,
+        0
+      ],
+      "typeVersion": 1,
+      "id": "d81829ed-96af-477c-8daa-15d9b65ad9b8",
+      "name": "Sticky Note3"
+    },
+    {
+      "parameters": {
+        "content": "🛡️ SPAM FILTER\nBlocks incomplete submissions.\nAll 3 fields required: name + email + phone",
+        "height": 112,
+        "width": 208
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        384,
+        -32
+      ],
+      "typeVersion": 1,
+      "id": "88f2474f-70f1-4896-93e9-288011275a25",
+      "name": "Sticky Note4"
+    },
+    {
+      "parameters": {
+        "content": "⚙️ DATA NORMALIZER\nCleans & structures all data.\nHas try/catch — lead never lost even if AI fails",
+        "height": 112,
+        "width": 192
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        1248,
+        0
+      ],
+      "typeVersion": 1,
+      "id": "c18e888b-884e-41cc-bd58-d276455993f5",
+      "name": "Sticky Note5"
+    },
+    {
+      "parameters": {
+        "content": "💾 CRM STORAGE\nSaves 25+ fields per lead.\nIncludes consent, dedup hash, follow-up stage",
+        "height": 96,
+        "width": 208
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        1456,
+        16
+      ],
+      "typeVersion": 1,
+      "id": "3e3ea23b-d618-4981-ad2d-7079dcc361fe",
+      "name": "Sticky Note6"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.resend.com/emails",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBearerAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"from\": \"onboarding@resend.dev\",\n  \"to\": \"nafeesurrehman556@gmail.com\",\n  \"subject\": \"🔥 HOT Lead Alert - Action Required!\",\n  \"text\": \"NEW HOT LEAD!\\n\\nName: {{ $('Lead Intake — Webhook').item.json.body.name }}\\nEmail: {{ $('Lead Intake — Webhook').item.json.body.email }}\\nPhone: {{ $('Lead Intake — Webhook').item.json.body.phone }}\\nService: {{ $('Lead Intake — Webhook').item.json.body.service }}\\nMessage: {{ $('Lead Intake — Webhook').item.json.body.message }}\\n\\nScore: {{ JSON.parse($('Sofia AI — Qualify Lead (Groq)').item.json.choices[0].message.content).score }}/10\\nUrgency: {{ JSON.parse($('Sofia AI — Qualify Lead (Groq)').item.json.choices[0].message.content).urgency }}\\n\\nCall this lead NOW!\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        2432,
+        112
+      ],
+      "id": "c7f5d1a4-fd0b-44ec-9269-0419fb006cda",
+      "name": "Email to owner",
+      "alwaysOutputData": false,
+      "retryOnFail": true,
+      "credentials": {
+        "httpBearerAuth": {
+          "id": "Lk5Ffo0LRNKNDf93",
+          "name": "Bearer Auth account"
+        }
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "content": "📧 EMAIL AUTOMATION\nHOT: urgent alert to owner\nWARM: nurture email\nCOLD: soft follow-up",
+        "height": 96,
+        "width": 208
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        2384,
+        0
+      ],
+      "typeVersion": 1,
+      "id": "3f815ff5-7d65-4db5-91a0-03347d58cf0e",
+      "name": "Sticky Note7"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "62fa8d42-82d8-460d-8554-63e7429ca0dc",
+              "leftValue": "={{ JSON.parse($('Sofia AI — Qualify Lead (Groq)').item.json.choices[0].message.content).lead_status }}",
+              "rightValue": "HOT",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        2112,
+        128
+      ],
+      "id": "43746e9b-9e57-4792-b83c-fea0098d1a69",
+      "name": "Route by Lead Score",
+      "alwaysOutputData": false,
+      "retryOnFail": true,
+      "onError": "continueErrorOutput"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Sofia AI — Qualify Lead (Groq)": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Log AI Failure to Airtable",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send HOT Lead Alert (Twilio,WhatsApp)": {
+      "main": [
+        [
+          {
+            "node": "Send HOT Lead Booking Link (Client)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Filter: Real Lead?": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Log Spam to Airtable",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Cold Follow-up Email (Resend)": {
+      "main": [
+        [
+          {
+            "node": "End — WARM/COLD Handled",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save to Airtable CRM": {
+      "main": [
+        [
+          {
+            "node": "Get a record",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Lead Intake — Webhook": {
+      "main": [
+        [
+          {
+            "node": "Filter: Real Lead?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split: WARM vs COLD": {
+      "main": [
+        [
+          {
+            "node": "Send Warm Nurture Email (Resend)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Warm Nurture Email (Resend)": {
+      "main": [
+        [
+          {
+            "node": "Send Cold Follow-up Email (Resend)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Acknowledgment Email (All Leads)": {
+      "main": [
+        [
+          {
+            "node": "Route by Lead Score",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Sofia AI — Qualify Lead (Groq)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Save to Airtable CRM",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get a record": {
+      "main": [
+        [
+          {
+            "node": "Send Acknowledgment Email (All Leads)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Email to owner": {
+      "main": [
+        [
+          {
+            "node": "Send HOT Lead Alert (Twilio,WhatsApp)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Route by Lead Score": {
+      "main": [
+        [
+          {
+            "node": "Email to owner",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Split: WARM vs COLD",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "8a52a6f7-72f8-41d9-9465-2176a8ce55dd",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "ca8e0a7a72782c3bafe01a4d1b7c2c1838eba719843baa538b46541b4e8b1576"
+  },
+  "id": "OuOc2RJAdVtTXuZb",
+  "tags": []
+}

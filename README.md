@@ -1,4 +1,4 @@
-# Sofia AI — MedSpa Lead Qualification Workflow
+# Sofia AI —Lead Qualification Workflow
 
 An end-to-end AI-powered lead qualification and nurture system built in n8n for US-based MedSpa & aesthetic clinics.
 
